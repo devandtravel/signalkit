@@ -148,6 +148,8 @@ export function Dashboard() {
       const ageResult = await computeCodebaseAge({
         githubRepoId: selectedRepo.id,
         timeframeDays: timeframe,
+        accessToken: accessToken ?? undefined,
+        repoName: selectedRepo.fullName,
       });
       setCodebaseAge(ageResult as CodebaseAge);
     } catch (err) {
@@ -161,6 +163,7 @@ export function Dashboard() {
     computePulse,
     isDemo,
     computeCodebaseAge,
+    accessToken,
   ]);
 
   // Initial load or on selection change
