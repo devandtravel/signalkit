@@ -23,6 +23,7 @@
         "hero_description_part2": "No noise, no vanity metrics. Just the data you need to protect your team's focus.",
         "standard_login": "Standard Login",
         "connect_github_app": "Connect GitHub App",
+        "go_to_dashboard": "Go to Dashboard",
         "demo_oauth": "Demo (Standard OAuth)",
         "demo_app": "Demo (GitHub App)",
         "login_note": "* Standard Login for public data. Connect App for private repo access & webhooks.",

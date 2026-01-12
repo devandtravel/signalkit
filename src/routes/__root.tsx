@@ -2,9 +2,10 @@ import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-r
 import { createServerFn } from "@tanstack/react-start";
 import { getCookie } from "@tanstack/react-start/server";
 import type { ReactNode } from "react";
-import { useTranslation, I18nextProvider } from "react-i18next";
-import i18n from "../lib/i18n";
+import { I18nextProvider, useTranslation } from "react-i18next";
 import { ConvexClientProvider } from "../components/ConvexClientProvider";
+import styleUrl from "../index.css?url";
+import i18n from "../lib/i18n";
 import "../index.css";
 
 const getLangServer = createServerFn({ method: "GET" }).handler(async () => {
@@ -21,7 +22,7 @@ export const Route = createRootRoute({
 
 function RootComponent() {
   const { lang } = Route.useLoaderData();
-  
+
   // Ensure the i18n instance matches the detected language during SSR
   if (typeof window === "undefined" && i18n.language !== lang) {
     i18n.changeLanguage(lang);
@@ -39,10 +40,10 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: { children: ReactNode }) {
-  const { i18n: translationInstance } = useTranslation();
+  const { i18n: tInstance } = useTranslation();
 
   return (
-    <html lang={translationInstance.language} className="dark" suppressHydrationWarning>
+    <html lang={tInstance.language} className="dark" suppressHydrationWarning>
       <head>
         <HeadContent />
         <meta charSet="utf-8" />

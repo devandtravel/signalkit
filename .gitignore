@@ -4,6 +4,7 @@ workspace
 !.env
 .env
 .env.local
+.env.vercel
 .DS_Store
 .cache
 .vercel
