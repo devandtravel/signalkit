@@ -166,13 +166,6 @@ export function Dashboard() {
     accessToken,
   ]);
 
-  // Initial load or on selection change
-  useEffect(() => {
-    if (selectedRepo) {
-      refreshSignals();
-    }
-  }, [selectedRepo, refreshSignals]);
-
   // Set initial state for Demo Mode if needed (optional, or let user select from RepoPicker)
   useEffect(() => {
     if (localStorage.getItem("is_demo_mode") === "true") {
@@ -185,7 +178,7 @@ export function Dashboard() {
   const syncRepo = useConvexAction(api.github.syncRepo);
 
   // Hook into sync to refresh signals
-  const handleSync = async () => {
+  const handleSync = useCallback(async () => {
     if (isDemo) {
       setSyncing(true);
       setTimeout(() => setSyncing(false), 1000); // Fake sync
@@ -208,7 +201,22 @@ export function Dashboard() {
     } finally {
       setSyncing(false);
     }
-  };
+  }, [selectedRepo, accessToken, isDemo, syncRepo, refreshSignals]);
+
+  // Initial load or on selection change - Auto Sync
+  useEffect(() => {
+    if (selectedRepo) {
+      // First, get whatever data we have locally
+      refreshSignals();
+      
+      // Then, trigger a sync to get fresh data
+      // We use a small timeout to let the UI settle and not block rendering
+      const timer = setTimeout(() => {
+         handleSync();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedRepo, refreshSignals, handleSync]);
 
   const handleSignOut = () => {
     localStorage.removeItem("github_access_token");
@@ -225,6 +233,8 @@ export function Dashboard() {
         selectedRepo={selectedRepo}
         isDemo={isDemo}
         onSignOut={handleSignOut}
+        syncing={syncing}
+        onSync={handleSync}
       />
 
       <main className="mx-auto max-w-6xl space-y-8">
@@ -274,8 +284,6 @@ export function Dashboard() {
                     score={timeSinkScore}
                     prevScore={prevTimeSinkScore}
                     churnFiles={churnFiles}
-                    syncing={syncing}
-                    onSync={handleSync}
                     renderTrend={renderTrend}
                   />
 

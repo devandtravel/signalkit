@@ -1,13 +1,11 @@
 import { useTranslation } from "react-i18next";
 import { InfoTooltip } from "../InfoTooltip";
-import { InfoIcon, RefreshIcon } from "../icons";
+import { InfoIcon } from "../icons";
 
 interface TimeSinkCardProps {
   score: number | null;
   prevScore: number | null;
   churnFiles: Array<{ file: string; prCount: number }>;
-  syncing: boolean;
-  onSync: () => void;
   renderTrend: (
     current: number | null,
     previous: number | null,
@@ -19,8 +17,6 @@ export function TimeSinkCard({
   score,
   prevScore,
   churnFiles,
-  syncing,
-  onSync,
   renderTrend,
 }: TimeSinkCardProps) {
   const { t } = useTranslation();
@@ -91,17 +87,7 @@ export function TimeSinkCard({
         </div>
       )}
 
-      <div className="mt-8 flex justify-end">
-        <button
-          type="button"
-          onClick={onSync}
-          disabled={syncing}
-          className="flex items-center gap-2 rounded-md bg-gray-800 px-4 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-700 disabled:opacity-50 transition-colors"
-        >
-          <RefreshIcon className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
-          {syncing ? t("common.ingesting") : t("common.refresh_ingest")}
-        </button>
-      </div>
+
     </div>
   );
 }

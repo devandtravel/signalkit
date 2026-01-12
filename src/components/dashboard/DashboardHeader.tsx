@@ -1,12 +1,15 @@
 import { useTranslation } from "react-i18next";
-import type { Repo } from "../RepoPicker";
+import { RefreshIcon } from "../icons";
 import { LanguageSwitcher } from "../LanguageSwitcher";
+import type { Repo } from "../RepoPicker";
 
 interface DashboardHeaderProps {
   authType: string | null;
   selectedRepo: Repo | null;
   isDemo: boolean;
   onSignOut: () => void;
+  syncing: boolean;
+  onSync: () => void;
 }
 
 export function DashboardHeader({
@@ -14,6 +17,8 @@ export function DashboardHeader({
   selectedRepo,
   isDemo,
   onSignOut,
+  syncing,
+  onSync,
 }: DashboardHeaderProps) {
   const { t } = useTranslation();
 
@@ -39,10 +44,21 @@ export function DashboardHeader({
           </div>
         )}
         {selectedRepo && (
-          <div className="flex items-center gap-2 rounded-full border border-green-500/30 bg-green-500/10 px-4 py-1.5 text-xs font-mono text-green-400">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-green-500"></span>
-            {selectedRepo.fullName}
-          </div>
+          <>
+            <div className="flex items-center gap-2 rounded-full border border-green-500/30 bg-green-500/10 px-4 py-1.5 text-xs font-mono text-green-400">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-green-500"></span>
+              {selectedRepo.fullName}
+            </div>
+            <button
+              type="button"
+              onClick={onSync}
+              disabled={syncing}
+              className="flex items-center gap-2 rounded-full border border-gray-700 bg-gray-800 px-3 py-1.5 text-xs font-medium text-gray-300 hover:text-white hover:bg-gray-700 disabled:opacity-50 transition-colors"
+            >
+              <RefreshIcon className={`h-3 w-3 ${syncing ? "animate-spin" : ""}`} />
+              {syncing ? t("common.ingesting") : t("common.refresh_ingest")}
+            </button>
+          </>
         )}
         <button
           type="button"
