@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { GitHubIcon } from "../components/icons";
 import { LanguageSwitcher } from "../components/LanguageSwitcher";
@@ -12,6 +13,31 @@ export const Route = createFileRoute("/")({
 export default function Index() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("github_access_token");
+    const isDemo = localStorage.getItem("is_demo_mode") === "true";
+    setIsAuthenticated(!!token && !isDemo);
+  }, []);
+
+  const handleLogin = (authType: "oauth" | "app") => {
+    if (isAuthenticated) {
+      navigate({ to: "/dashboard" });
+      return;
+    }
+
+    const clientId = authType === "oauth" 
+      ? import.meta.env.VITE_AUTH_GITHUB_ID 
+      : import.meta.env.VITE_GITHUB_APP_CLIENT_ID;
+    
+    localStorage.setItem("is_demo_mode", "false");
+    localStorage.setItem("auth_type", authType);
+    
+    const scope = "user:email repo";
+    const redirectUri = `${window.location.origin}/auth/github/callback`;
+    window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=${scope}&redirect_uri=${redirectUri}`;
+  };
 
   const handleDemo = (authType: "oauth" | "app") => {
     localStorage.setItem("is_demo_mode", "true");
@@ -47,25 +73,45 @@ export default function Index() {
 
         <div className="flex flex-col items-center gap-8">
           <div className="flex flex-col sm:flex-row items-center gap-4">
-            <Button
-              size="lg"
-              onClick={() => handleDemo("oauth")}
-              className="h-14 px-8 rounded-full bg-zinc-100 text-zinc-950 hover:bg-white gap-3 text-base font-bold transition-all hover:scale-105 active:scale-95"
-              type="button"
-            >
-              <GitHubIcon size={20} title="GitHub" />
-              {t("landing.standard_login")}
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => handleDemo("app")}
-              className="h-14 px-8 rounded-full border-zinc-800 bg-zinc-900/50 text-zinc-100 hover:bg-zinc-800 gap-3 text-base font-bold transition-all hover:scale-105 active:scale-95"
-              type="button"
-            >
-              {t("landing.connect_github_app")}
-            </Button>
+            {isAuthenticated ? (
+              <Button
+                size="lg"
+                onClick={() => handleLogin("oauth")}
+                className="h-14 px-8 rounded-full bg-zinc-100 text-zinc-950 hover:bg-white gap-3 text-base font-bold transition-all hover:scale-105 active:scale-95"
+                type="button"
+              >
+                <GitHubIcon size={20} title="GitHub" />
+                {t("landing.go_to_dashboard")}
+              </Button>
+            ) : (
+              <>
+                <Button
+                  size="lg"
+                  onClick={() => handleLogin("oauth")}
+                  className="h-14 px-8 rounded-full bg-zinc-100 text-zinc-950 hover:bg-white gap-3 text-base font-bold transition-all hover:scale-105 active:scale-95"
+                  type="button"
+                >
+                  <GitHubIcon size={20} title="GitHub" />
+                  {t("landing.standard_login")}
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => handleLogin("app")}
+                  className="h-14 px-8 rounded-full border-zinc-800 bg-zinc-900/50 text-zinc-100 hover:bg-zinc-800 gap-3 text-base font-bold transition-all hover:scale-105 active:scale-95"
+                  type="button"
+                >
+                  {t("landing.connect_github_app")}
+                </Button>
+              </>
+            )}
           </div>
+
+          {!isAuthenticated && (
+            <p className="max-w-md text-[10px] font-bold uppercase tracking-widest text-zinc-600">
+              {t("landing.login_note")}
+            </p>
+          )}
 
           <div className="flex flex-col sm:flex-row gap-6 w-full justify-center opacity-50 hover:opacity-100 transition-opacity">
             <button

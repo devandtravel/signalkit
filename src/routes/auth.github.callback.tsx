@@ -34,7 +34,12 @@ function AuthCallback() {
 
       try {
         const authType = localStorage.getItem("auth_type") || "oauth";
-        const result = await exchangeCode({ code: search.code, authType });
+        const redirectUri = `${window.location.origin}/auth/github/callback`;
+        const result = await exchangeCode({ 
+          code: search.code, 
+          redirectUri,
+          authType 
+        });
         console.log("Logged in:", result);
         
         // MVP: Persist token for client-side API calls

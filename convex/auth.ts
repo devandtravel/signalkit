@@ -41,9 +41,10 @@ export const storeUser = mutation({
  * then stores the user in Convex.
  */
 export const handleGitHubCallback = action({
-  args: { 
+  args: {
     code: v.string(),
-    authType: v.optional(v.string()) // "oauth" | "app"
+    redirectUri: v.string(),
+    authType: v.optional(v.string()), // "oauth" | "app"
   },
   handler: async (ctx, args): Promise<{ userId: string; login: string; accessToken: string }> => {
     let clientId = process.env.AUTH_GITHUB_ID;
@@ -69,6 +70,7 @@ export const handleGitHubCallback = action({
         client_id: clientId,
         client_secret: clientSecret,
         code: args.code,
+        redirect_uri: args.redirectUri,
       }),
     });
 
