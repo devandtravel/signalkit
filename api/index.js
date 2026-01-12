@@ -23,7 +23,7 @@ export default async function (req, res) {
     const request = new Request(url.href, init);
     
     // The handler from TanStack Start server build expects a web Request
-    const response = await handler(request);
+    const response = await handler.fetch(request);
 
     res.statusCode = response.status;
     res.statusMessage = response.statusText;
