@@ -5,7 +5,6 @@ import type { ReactNode } from "react";
 import { useTranslation, I18nextProvider } from "react-i18next";
 import i18n from "../lib/i18n";
 import { ConvexClientProvider } from "../components/ConvexClientProvider";
-import styleUrl from "../index.css?url";
 import "../index.css";
 
 const getLangServer = createServerFn({ method: "GET" }).handler(async () => {
@@ -41,18 +40,16 @@ function RootComponent() {
 
 function RootDocument({ children }: { children: ReactNode }) {
   const { i18n: translationInstance } = useTranslation();
-  const cssHref = styleUrl.split("?")[0];
 
   return (
-    <html lang={translationInstance.language} className="dark">
+    <html lang={translationInstance.language} className="dark" suppressHydrationWarning>
       <head>
         <HeadContent />
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>SignalKit</title>
-        <link rel="stylesheet" href={cssHref} />
       </head>
-      <body className="bg-background text-foreground antialiased">
+      <body className="bg-background text-foreground antialiased" suppressHydrationWarning>
         {children}
         <Scripts />
       </body>
