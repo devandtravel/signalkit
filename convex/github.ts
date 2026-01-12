@@ -95,14 +95,16 @@ export const fetchInstallations = action({
       throw new Error(`Failed to fetch installations or user: ${res.statusText}`);
     }
     const user = await userRes.json();
-    return [{
-      id: user.id, // Using User ID as the "Installation ID" context
-      account: {
-        login: user.login,
-        avatarUrl: user.avatar_url,
-        type: "User",
+    return [
+      {
+        id: user.id, // Using User ID as the "Installation ID" context
+        account: {
+          login: user.login,
+          avatarUrl: user.avatar_url,
+          type: "User",
+        },
       },
-    }];
+    ];
   },
 });
 
@@ -143,20 +145,20 @@ export const fetchRepos = action({
     console.warn("Failed to fetch installation repos, falling back to user repos.");
     const userReposRes = await fetch(
       "https://api.github.com/user/repos?sort=updated&per_page=100&affiliation=owner,collaborator,organization_member",
-      { headers }
+      { headers },
     );
 
     if (!userReposRes.ok) {
-        throw new Error(`Failed to fetch repos: ${res.statusText} / ${userReposRes.statusText}`);
+      throw new Error(`Failed to fetch repos: ${res.statusText} / ${userReposRes.statusText}`);
     }
-    
+
     const repos = await userReposRes.json();
     return repos.map((repo: GitHubRepo) => ({
-        id: repo.id,
-        name: repo.name,
-        fullName: repo.full_name,
-        private: repo.private,
-        defaultBranch: repo.default_branch,
+      id: repo.id,
+      name: repo.name,
+      fullName: repo.full_name,
+      private: repo.private,
+      defaultBranch: repo.default_branch,
     }));
   },
 });
@@ -243,7 +245,7 @@ export const syncRepo = action({
 
     // 4. Send batch to Convex
     if (eventsToIngest.length > 0) {
-      await ctx.runMutation(internal.sensors.ingestEvents, {
+      await ctx.runMutation(internal.sensors.ingest.ingestEvents, {
         repo: {
           id: args.repoId,
           name: args.repoName.split("/")[1] || args.repoName,

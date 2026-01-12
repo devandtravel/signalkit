@@ -1,0 +1,117 @@
+{
+    "common": {
+        "loading": "Loading...",
+        "refresh": "Refresh",
+        "ingest": "Ingest Data",
+        "ingesting": "Ingesting...",
+        "refresh_ingest": "Refresh / Ingest Data",
+        "sign_out": "Sign Out",
+        "exit_demo": "Exit Demo",
+        "back": "Back",
+        "days": "days",
+        "compared_to_previous": "Compared to the previous {{count}} days",
+        "modern": "Modern",
+        "legacy": "Legacy",
+        "all": "All",
+        "built_by": "Built for flow."
+    },
+    "landing": {
+        "hero_title_part1": "Master your",
+        "hero_title_part2": "Engineering Flow.",
+        "hero_description_part1": "SignalKit surfaces the high-fidelity signals hidden in your",
+        "hero_description_timesinks": "GitHub history.",
+        "hero_description_part2": "No noise, no vanity metrics. Just the data you need to protect your team's focus.",
+        "standard_login": "Standard Login",
+        "connect_github_app": "Connect GitHub App",
+        "demo_oauth": "Demo (Standard OAuth)",
+        "demo_app": "Demo (GitHub App)",
+        "login_note": "* Standard Login for public data. Connect App for private repo access & webhooks.",
+        "features": {
+            "time_sink": {
+                "title": "Time Sink Metric",
+                "desc": "Identifies code that is constantly being rewritten across multiple PRs."
+            },
+            "privacy": {
+                "title": "Privacy First",
+                "desc": "We only analyze metadata and stats. Your source code never leaves GitHub."
+            },
+            "instant": {
+                "title": "Instant Analysis",
+                "desc": "Connect a repo and get insights in seconds. No complex setup required."
+            }
+        }
+    },
+    "dashboard": {
+        "header": {
+            "github_app": "GitHub App",
+            "standard_oauth": "Standard OAuth"
+        },
+        "controls": {
+            "data_source": "Data Source",
+            "timeframe": "Timeframe"
+        },
+        "data_source": {
+            "title": "Data Source"
+        },
+        "timeframe": {
+            "title": "Timeframe"
+        },
+        "empty_state": {
+            "no_repo": "No Repository Selected",
+            "no_repo_desc": "Select a repository from your connected installations to start monitoring development signals, churn, and team distribution."
+        },
+        "signals": {
+            "title": "Signals",
+            "time_sink": {
+                "title": "Time Sink",
+                "description": "Rework detected in merged PRs",
+                "tooltip": "Measures engineering rework by tracking how often files are modified shortly after being merged. High churn suggests technical debt or changing requirements.",
+                "high_churn_files": "High Churn Files",
+                "prs": "PRs"
+            },
+            "truck_factor": {
+                "title": "Truck Factor",
+                "subtitle": "Knowledge Silos & Hero Developers",
+                "description": "Also known as the Bus Factor. It calculates how many key developers would need to be 'hit by a truck' before the project stalls due to knowledge silos.",
+                "risk_score": "Risk Score",
+                "primary_maintainers": "Primary Maintainers",
+                "critical_files": "critical files",
+                "no_silos": "No silos detected. Knowledge appears well distributed."
+            },
+            "pulse": {
+                "title": "Pulse",
+                "description": "Development Cadence",
+                "tooltip": "Development cadence and velocity. High cadence indicates frequent shipping and momentum. Sporadic activity might suggest project instability.",
+                "score": "Score",
+                "events": "events",
+                "status_labels": {
+                    "consistent": "Consistent",
+                    "high_cadence": "High Cadence",
+                    "stagnant": "Stagnant",
+                    "sporadic": "Sporadic"
+                }
+            },
+            "codebase_age": {
+                "title": "Codebase Age",
+                "description": "Effective technology stack era",
+                "tooltip": "Estimates the 'effective year' of the codebase based on used tools, libraries, and coding styles. Shows how modern or legacy the project feels.",
+                "why_this_year": "Why this year?",
+                "hide_details": "Hide Details",
+                "disclaimer": "* This is an automated assessment of project signatures and may not reflect manual architectural efforts.",
+                "status_labels": {
+                    "maintenance_mode": "Maintenance Mode",
+                    "bleeding_edge": "Bleeding Edge",
+                    "stable_mature": "Stable / Mature",
+                    "legacy_stack": "Legacy Stack",
+                    "modern_stack": "Modern Stack"
+                }
+            }
+        }
+    },
+    "repo_picker": {
+        "select_installation": "Select an installation",
+        "no_installations": "No active GitHub installations found.",
+        "no_repos": "No repositories found for this installation.",
+        "search_placeholder": "Search repositories..."
+    }
+}

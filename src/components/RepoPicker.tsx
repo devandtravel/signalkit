@@ -1,5 +1,6 @@
 import { useConvexAction } from "@convex-dev/react-query";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { api } from "../../convex/_generated/api";
 
 interface Installation {
@@ -30,6 +31,7 @@ export function RepoPicker({
   onSelect: (repo: Repo) => void;
   isDemo?: boolean;
 }) {
+  const { t } = useTranslation();
   const fetchInstallations = useConvexAction(api.github.fetchInstallations);
   const fetchRepos = useConvexAction(api.github.fetchRepos);
 
@@ -84,7 +86,9 @@ export function RepoPicker({
 
   // Reset selected owner when installation changes
   useEffect(() => {
-    setSelectedOwner(null);
+    if (selectedInstallation !== undefined) {
+      setSelectedOwner(null);
+    }
   }, [selectedInstallation]);
 
   const filteredRepos = selectedOwner
@@ -124,7 +128,7 @@ export function RepoPicker({
                   : "text-gray-500 hover:text-white"
               }`}
             >
-              All
+              {t('common.all')}
             </button>
           {owners.map((owner) => (
             <button
@@ -165,7 +169,7 @@ export function RepoPicker({
         ))}
         {filteredRepos.length === 0 && !loading && (
           <div className="col-span-2 text-center text-xs text-gray-600 py-4">
-            No repositories found. Check App permissions.
+            {t('repo_picker.no_repos')}
           </div>
         )}
       </div>
