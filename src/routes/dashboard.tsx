@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import { type Repo, RepoPicker } from "../components/RepoPicker";
 import { TimeframeSelector } from "../components/TimeframeSelector";
+import { InfoTooltip } from "../components/InfoTooltip";
 
 export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
@@ -56,9 +57,11 @@ function Dashboard() {
       const icon = diff > 0 ? "↑" : "↓";
       
       return (
-          <span className={`text-xs font-mono font-medium ${color} flex items-center gap-1 bg-gray-900/50 px-1.5 py-0.5 rounded border border-gray-800`}>
-             {icon} {Math.abs(diff)}
-          </span>
+          <InfoTooltip content={`Compared to the previous ${timeframe} days`} align="right">
+              <span className={`text-xs font-mono font-medium ${color} flex items-center gap-1 bg-gray-900/50 px-1.5 py-0.5 rounded border border-gray-800 cursor-help`}>
+                 {icon} {Math.abs(diff)}
+              </span>
+          </InfoTooltip>
       );
   };
 
@@ -235,16 +238,31 @@ function Dashboard() {
                 Signals
               </h2>
               {!selectedRepo ? (
-                <div className="flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-gray-800 bg-gray-900/50">
-                  <div className="text-sm text-gray-400">Select a repository to view signals</div>
+                <div className="flex h-96 flex-col items-center justify-center rounded-2xl border border-dashed border-gray-800 bg-gray-900/50 p-12 text-center">
+                  <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-800/50 text-2xl">
+                    📊
+                  </div>
+                  <h3 className="mb-2 text-lg font-medium text-gray-200">No Repository Selected</h3>
+                  <p className="max-w-sm text-sm text-gray-500 leading-relaxed">
+                    Select a repository from your connected installations to start monitoring development signals, churn, and team distribution.
+                  </p>
                 </div>
               ) : (
                 <div className="flex flex-col gap-6">
                 {/* Time Sink Signal */}
-                <div className="relative overflow-hidden rounded-2xl border border-gray-800 bg-gray-900 p-8 transition-all hover:border-gray-700">
+                <div className="relative rounded-2xl border border-gray-800 bg-gray-900 p-8 transition-all hover:border-gray-700">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="font-mono text-lg font-medium text-gray-200">Time Sink</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-mono text-lg font-medium text-gray-200">Time Sink</h3>
+                        <InfoTooltip align="left" content="Measures engineering rework by tracking how often files are modified shortly after being merged. High churn suggests technical debt or changing requirements.">
+                            <span className="cursor-help text-gray-600 hover:text-gray-400">
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </span>
+                        </InfoTooltip>
+                      </div>
                       <p className="mt-1 text-sm text-gray-500">Rework detected in merged PRs</p>
                     </div>
                     <div className="flex flex-col items-end gap-1">
@@ -311,10 +329,19 @@ function Dashboard() {
                 </div>
 
                 {/* Truck Factor Signal */}
-                <div className="relative overflow-hidden rounded-2xl border border-gray-800 bg-gray-900 p-8 transition-all hover:border-gray-700">
+                <div className="relative rounded-2xl border border-gray-800 bg-gray-900 p-8 transition-all hover:border-gray-700">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="font-mono text-lg font-medium text-gray-200">Truck Factor</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-mono text-lg font-medium text-gray-200">Truck Factor</h3>
+                        <InfoTooltip align="left" content="Also known as the Bus Factor. It calculates how many key developers would need to be 'hit by a truck' before the project stalls due to knowledge silos.">
+                            <span className="cursor-help text-gray-600 hover:text-gray-400">
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </span>
+                        </InfoTooltip>
+                      </div>
                       <p className="mt-1 text-sm text-gray-500">Knowledge Silos & Hero Developers</p>
                     </div>
                     <div className="flex flex-col items-end gap-1">
@@ -382,10 +409,19 @@ function Dashboard() {
                 </div>
 
                 {/* Pulse Signal */}
-                <div className="relative overflow-hidden rounded-2xl border border-gray-800 bg-gray-900 p-8 transition-all hover:border-gray-700">
+                <div className="relative rounded-2xl border border-gray-800 bg-gray-900 p-8 transition-all hover:border-gray-700">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="font-mono text-lg font-medium text-gray-200">Pulse</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-mono text-lg font-medium text-gray-200">Pulse</h3>
+                        <InfoTooltip align="left" content="Development cadence and velocity. High cadence indicates frequent shipping and momentum. Sporadic activity might suggest project instability.">
+                            <span className="cursor-help text-gray-600 hover:text-gray-400">
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </span>
+                        </InfoTooltip>
+                      </div>
                       <p className="mt-1 text-sm text-gray-500">Development Cadence</p>
                     </div>
                     <div className="flex flex-col items-end gap-1">
