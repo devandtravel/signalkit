@@ -10,7 +10,11 @@
 
 import type * as auth from "../auth.js";
 import type * as github from "../github.js";
-import type * as sensors from "../sensors.js";
+import type * as sensors_dal from "../sensors/dal.js";
+import type * as sensors_ingest from "../sensors/ingest.js";
+import type * as sensors_pulse from "../sensors/pulse.js";
+import type * as sensors_timeSink from "../sensors/timeSink.js";
+import type * as sensors_truckFactor from "../sensors/truckFactor.js";
 
 import type {
   ApiFromModules,
@@ -21,7 +25,11 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   github: typeof github;
-  sensors: typeof sensors;
+  "sensors/dal": typeof sensors_dal;
+  "sensors/ingest": typeof sensors_ingest;
+  "sensors/pulse": typeof sensors_pulse;
+  "sensors/timeSink": typeof sensors_timeSink;
+  "sensors/truckFactor": typeof sensors_truckFactor;
 }>;
 
 /**

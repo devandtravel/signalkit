@@ -5,8 +5,6 @@ import { api } from "../../convex/_generated/api";
 import { type Repo, RepoPicker } from "../components/RepoPicker";
 import { TimeframeSelector } from "../components/TimeframeSelector";
 
-import { getMockSignals } from "../lib/demo-data";
-
 export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
 });
@@ -27,33 +25,102 @@ function Dashboard() {
 
   /* Time Sink State */
   const [timeSinkScore, setTimeSinkScore] = useState<number | null>(null);
+  const [prevTimeSinkScore, setPrevTimeSinkScore] = useState<number | null>(null); // New
   const [churnFiles, setChurnFiles] = useState<Array<{ file: string; prCount: number }>>([]);
-  const computeTimeSink = useConvexAction(api.sensors.computeTimeSink);
+  const computeTimeSink = useConvexAction(api.sensors.timeSink.compute);
+
+  /* Truck Factor State */
+  const [truckFactorScore, setTruckFactorScore] = useState<number | null>(null);
+  const [prevTruckFactorScore, setPrevTruckFactorScore] = useState<number | null>(null); // New
+  const [heroes, setHeroes] = useState<Array<{ author: string; fileCount: number; topFiles: string[] }>>([]);
+  const computeTruckFactor = useConvexAction(api.sensors.truckFactor.compute);
+
+  /* Pulse State */
+  const [pulseScore, setPulseScore] = useState<number | null>(null);
+  const [prevPulseScore, setPrevPulseScore] = useState<number | null>(null); // New
+  const [pulseStatus, setPulseStatus] = useState<string | null>(null);
+  const [dailyActivity, setDailyActivity] = useState<Array<{ date: string; count: number }>>([]);
+  const computePulse = useConvexAction(api.sensors.pulse.compute);
 
   // Demo Mode
   const [isDemo, setIsDemo] = useState(false);
+
+  // Helper to render trend
+  const renderTrend = (current: number | null, previous: number | null, inverse = false) => {
+      if (current === null || previous === null) return null;
+      const diff = current - previous;
+      if (diff === 0) return <span className="text-gray-500 text-xs">—</span>;
+      
+      const isGood = inverse ? diff < 0 : diff > 0;
+      const color = isGood ? "text-emerald-400" : "text-rose-400";
+      const icon = diff > 0 ? "↑" : "↓";
+      
+      return (
+          <span className={`text-xs font-mono font-medium ${color} flex items-center gap-1 bg-gray-900/50 px-1.5 py-0.5 rounded border border-gray-800`}>
+             {icon} {Math.abs(diff)}
+          </span>
+      );
+  };
 
   const refreshSignals = useCallback(async () => {
     if (!selectedRepo) return;
     
     if (isDemo) {
-        const mockData = getMockSignals(selectedRepo.id, timeframe);
-        setTimeSinkScore(mockData.score);
-        setChurnFiles(mockData.churnFiles);
+        // Fetch Mock Data
+        import("../lib/demo-data").then(({ getMockSignals, getMockTruckFactor, getMockPulse }) => {
+             const signals = getMockSignals(selectedRepo.id, timeframe);
+             const tf = getMockTruckFactor(selectedRepo.id, timeframe);
+             const pulse = getMockPulse(selectedRepo.id, timeframe);
+             
+             setTimeSinkScore(signals.score);
+             setPrevTimeSinkScore(signals.previousScore);
+             setChurnFiles(signals.churnFiles);
+             
+             setTruckFactorScore(tf.riskScore);
+             setPrevTruckFactorScore(tf.previousRiskScore);
+             setHeroes(tf.heroes);
+
+             setPulseScore(pulse.score);
+             setPrevPulseScore(pulse.previousScore);
+             setPulseStatus(pulse.status);
+             setDailyActivity(pulse.dailyActivity);
+        });
         return;
     }
 
     try {
+      // 1. Time Sink
       const result = await computeTimeSink({
         githubRepoId: selectedRepo.id,
         timeframeDays: timeframe,
       });
       setTimeSinkScore(result.score);
+      setPrevTimeSinkScore(result.previousScore);
       setChurnFiles(result.churnFiles);
+
+      // 2. Truck Factor
+      const tfResult = await computeTruckFactor({
+          githubRepoId: selectedRepo.id,
+          timeframeDays: timeframe,
+      });
+      setTruckFactorScore(tfResult.riskScore);
+      setPrevTruckFactorScore(tfResult.previousRiskScore);
+      setHeroes(tfResult.heroes);
+
+      // 3. Pulse
+      const pulseResult = await computePulse({
+          githubRepoId: selectedRepo.id,
+          timeframeDays: timeframe,
+      });
+      setPulseScore(pulseResult.score);
+      setPrevPulseScore(pulseResult.previousScore);
+      setPulseStatus(pulseResult.status);
+      setDailyActivity(pulseResult.dailyActivity);
+
     } catch (err) {
       console.error("Signal calc failed:", err);
     }
-  }, [selectedRepo, timeframe, computeTimeSink, isDemo]);
+  }, [selectedRepo, timeframe, computeTimeSink, computeTruckFactor, computePulse, isDemo]);
 
   // Initial load or on selection change
   useEffect(() => {
@@ -172,22 +239,26 @@ function Dashboard() {
                   <div className="text-sm text-gray-400">Select a repository to view signals</div>
                 </div>
               ) : (
-                // Time Sink Signal
+                <div className="flex flex-col gap-6">
+                {/* Time Sink Signal */}
                 <div className="relative overflow-hidden rounded-2xl border border-gray-800 bg-gray-900 p-8 transition-all hover:border-gray-700">
                   <div className="flex items-start justify-between">
                     <div>
                       <h3 className="font-mono text-lg font-medium text-gray-200">Time Sink</h3>
                       <p className="mt-1 text-sm text-gray-500">Rework detected in merged PRs</p>
                     </div>
-                    <div className="flex items-baseline gap-1">
-                      <span
-                        className={`text-4xl font-bold ${
-                          timeSinkScore !== null && timeSinkScore > 20 ? "text-red-400" : "text-white"
-                        }`}
-                      >
-                        {timeSinkScore !== null ? timeSinkScore : "--"}
-                      </span>
-                      <span className="text-sm text-gray-500">%</span>
+                    <div className="flex flex-col items-end gap-1">
+                        <div className="flex items-baseline gap-2">
+                        <span
+                            className={`text-4xl font-bold ${
+                            timeSinkScore !== null && timeSinkScore > 20 ? "text-red-400" : "text-white"
+                            }`}
+                        >
+                            {timeSinkScore !== null ? timeSinkScore : "--"}
+                        </span>
+                        <span className="text-sm text-gray-500">%</span>
+                        </div>
+                        {renderTrend(timeSinkScore, prevTimeSinkScore, true)}
                     </div>
                   </div>
 
@@ -237,6 +308,139 @@ function Dashboard() {
                       {syncing ? "Ingesting..." : "Refresh / Ingest Data"}
                     </button>
                   </div>
+                </div>
+
+                {/* Truck Factor Signal */}
+                <div className="relative overflow-hidden rounded-2xl border border-gray-800 bg-gray-900 p-8 transition-all hover:border-gray-700">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-mono text-lg font-medium text-gray-200">Truck Factor</h3>
+                      <p className="mt-1 text-sm text-gray-500">Knowledge Silos & Hero Developers</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                          <div className="flex items-baseline gap-2">
+                          <span
+                            className={`text-4xl font-bold ${
+                              truckFactorScore !== null && truckFactorScore > 50 ? "text-orange-400" : "text-green-400"
+                            }`}
+                          >
+                            {truckFactorScore !== null ? truckFactorScore : "--"}
+                          </span>
+                          <span className="text-[10px] uppercase text-gray-500 tracking-wider">Risk Score</span>
+                        </div>
+                        {renderTrend(truckFactorScore, prevTruckFactorScore, true)}
+                    </div>
+                  </div>
+
+                   <div className="mt-8 h-2 w-full rounded-full bg-gray-800">
+                    <div
+                      className={`h-full rounded-full transition-all duration-1000 ${
+                        truckFactorScore !== null && truckFactorScore > 50
+                          ? "bg-orange-500"
+                          : "bg-emerald-500"
+                      }`}
+                      style={{ width: `${truckFactorScore || 0}%` }}
+                    ></div>
+                  </div>
+
+                  {/* Heroes List */}
+                  {heroes.length > 0 ? (
+                    <div className="mt-8 space-y-4">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                        Primary Maintainers
+                      </h4>
+                      <div className="space-y-3">
+                        {heroes.map((hero) => (
+                          <div key={hero.author} className="space-y-2">
+                              <div className="flex items-center justify-between text-sm">
+                                  <div className="flex items-center gap-2">
+                                      <span className="h-6 w-6 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-300">
+                                          {hero.author.slice(0, 2).toUpperCase()}
+                                      </span>
+                                      <span className="text-gray-300 font-medium">{hero.author}</span>
+                                  </div>
+                                  <span className="text-xs text-gray-500">{hero.fileCount} critical files</span>
+                              </div>
+                              <div className="pl-8 space-y-1">
+                                  {hero.topFiles.map(file => (
+                                      <div key={file} className="text-[10px] font-mono text-gray-500 truncate">
+                                          {file}
+                                      </div>
+                                  ))}
+                              </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                      truckFactorScore === 0 && (
+                          <div className="mt-8 text-sm text-gray-500 italic">
+                              No silos detected. Knowledge appears well distributed.
+                          </div>
+                      )
+                  )}
+                </div>
+
+                {/* Pulse Signal */}
+                <div className="relative overflow-hidden rounded-2xl border border-gray-800 bg-gray-900 p-8 transition-all hover:border-gray-700">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-mono text-lg font-medium text-gray-200">Pulse</h3>
+                      <p className="mt-1 text-sm text-gray-500">Development Cadence</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                        <div className="flex items-baseline gap-2">
+                            <span
+                                className={`text-2xl font-bold font-mono ${
+                                    pulseStatus === 'High Cadence' ? "text-purple-400" :
+                                    pulseStatus === 'Consistent' ? "text-blue-400" :
+                                    pulseStatus === 'Sporadic' ? "text-yellow-400" :
+                                    "text-gray-500"
+                                }`}
+                            >
+                                {pulseStatus || "--"}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            {renderTrend(pulseScore, prevPulseScore, false)}
+                            <span className="text-[10px] uppercase text-gray-500 tracking-wider">Score: {pulseScore}</span>
+                        </div>
+                    </div>
+                  </div>
+
+                  {/* Heatmap Visualization */}
+                  {dailyActivity.length > 0 && (
+                      <div className="mt-8">
+                          <div className="flex items-end gap-[2px] h-16 w-full">
+                              {dailyActivity.map((day) => {
+                                  // Normalize height based on max (or simple cap)
+                                  const height = day.count > 0 ? Math.min(100, Math.max(10, day.count * 10)) : 5;
+                                  // Color intensity
+                                  const opacity = day.count > 0 ? Math.min(1, 0.3 + (day.count / 10)) : 0.1;
+                                  
+                                  return (
+                                      <div 
+                                          key={day.date} 
+                                          className="flex-1 bg-purple-500 rounded-sm hover:opacity-100 transition-all relative group"
+                                          style={{ 
+                                              height: `${height}%`, 
+                                              opacity: opacity
+                                          }}
+                                      >
+                                          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-gray-800 text-xs px-2 py-1 rounded hidden group-hover:block whitespace-nowrap z-10 border border-gray-700">
+                                              {day.date}: {day.count} events
+                                          </div>
+                                      </div>
+                                  );
+                              })}
+                          </div>
+                          <div className="mt-2 text-[10px] text-gray-500 flex justify-between uppercase tracking-wider font-mono">
+                                <span>{dailyActivity[0]?.date}</span>
+                                <span>{dailyActivity[dailyActivity.length - 1]?.date}</span>
+                          </div>
+                      </div>
+                  )}
+                </div>
                 </div>
               )}
             </section>

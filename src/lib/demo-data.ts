@@ -85,8 +85,80 @@ export const getMockSignals = (repoId: number, timeframeDays: number) => {
     ];
   }
 
+  // Calculate previous score for trend
+  const previousScore = Math.max(0, Math.min(100, score + (timeframeDays <= 7 ? (Math.random() > 0.5 ? 5 : -5) : (Math.random() > 0.5 ? 2 : -2))));
+
   return {
     score,
+    previousScore,
     churnFiles
   };
+};
+
+export const getMockTruckFactor = (repoId: number, _timeframeDays: number) => {
+    let riskScore = 0;
+    if (repoId === 201) riskScore = 85; // High risk for startup
+    if (repoId === 101) riskScore = 99; // Solo project
+    const previousRiskScore = Math.max(0, riskScore - 10); // Risk increased recently
+
+    const heroes = [];
+    if (riskScore > 0) {
+        heroes.push({ author: "cto-dave", fileCount: 42, topFiles: ["src/core/engine.ts", "src/auth/jwt.ts"] });
+        if (riskScore < 90) heroes.push({ author: "senior-dev-sarah", fileCount: 28, topFiles: ["src/api/routes.ts"] });
+    }
+
+    return {
+        riskScore,
+        previousRiskScore,
+        heroes,
+        totalFiles: 150
+    };
+};
+
+export const getMockPulse = (repoId: number, timeframeDays: number) => {
+    const dailyActivity = [];
+    const now = Date.now();
+    let status = "Consistent";
+    let score = 75;
+    let previousScore = 70;
+
+    // Simulate scenarios
+    let intensity = 0.5; // Probability of activity per day
+    let activityMultiplier = 5;
+
+    if (repoId === 201) { // startup-inc (Busy)
+        status = "High Cadence";
+        score = 95;
+        previousScore = 80;
+        intensity = 0.9;
+        activityMultiplier = 15;
+    } else if (repoId === 102) { // obsidian-plugin (Abandoned)
+        status = "Stagnant";
+        score = 5;
+        previousScore = 15; // Decreased
+        intensity = 0.05;
+        activityMultiplier = 1;
+    } else if (repoId === 101) { // personal (Steady)
+        status = "Consistent";
+        score = 80;
+        previousScore = 80; // Stable
+        intensity = 0.6;
+        activityMultiplier = 8;
+    }
+
+    for (let i = timeframeDays - 1; i >= 0; i--) {
+        const date = new Date(now - i * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        // Weighted random activity
+        const hasActivity = Math.random() < intensity;
+        const count = hasActivity ? Math.floor(Math.random() * activityMultiplier) + 1 : 0;
+        
+        dailyActivity.push({ date, count });
+    }
+
+    return {
+        score,
+        previousScore,
+        status,
+        dailyActivity
+    };
 };
