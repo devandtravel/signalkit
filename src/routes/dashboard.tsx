@@ -193,7 +193,7 @@ export function Dashboard() {
         repoName: selectedRepo.fullName,
         repoFullName: selectedRepo.fullName,
         repoPrivate: selectedRepo.private,
-        limit: 20,
+        limit: 100,
       });
       await refreshSignals();
     } catch (err) {
