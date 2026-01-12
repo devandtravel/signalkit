@@ -44,26 +44,31 @@ export const compute = action({
     };
 
     const fetchFile = async (path: string) => {
+      if (!args.repoName) return null;
+      console.log(`Fetching ${path} for ${args.repoName}`);
       try {
         const res = await fetch(`https://api.github.com/repos/${args.repoName}/contents/${path}`, {
           headers,
         });
         if (!res.ok) {
-          console.log(`Fetch failed for ${path}: ${res.status}`);
+          console.log(`Fetch failed for ${path}: ${res.status} ${res.statusText}`);
           return null;
         }
         const data = await res.json();
         // GitHub API returns content in base64
         if (data.content && data.encoding === "base64") {
-          const cleanContent = data.content.replace(/\s/g, "");
+          const cleanContent = data.content.replace(/[\n\r\s]/g, "");
+          // Convex supports standard Web APIs like atob
           if (typeof atob === "function") {
             return atob(cleanContent);
           }
-          if (typeof Buffer === "function") {
-            return Buffer.from(cleanContent, "base64").toString("utf-8");
+          // Manual fallback if atob is missing (unlikely but safe)
+          try {
+            return Function("return atob")()(cleanContent);
+          } catch (e) {
+            console.error("atob not available");
+            return null;
           }
-          console.error("No base64 decoder available");
-          return null;
         }
         return null;
       } catch (e) {
