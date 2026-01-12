@@ -10,6 +10,7 @@
 
 import type * as auth from "../auth.js";
 import type * as github from "../github.js";
+import type * as sensors_codebaseAge from "../sensors/codebaseAge.js";
 import type * as sensors_dal from "../sensors/dal.js";
 import type * as sensors_ingest from "../sensors/ingest.js";
 import type * as sensors_pulse from "../sensors/pulse.js";
@@ -25,6 +26,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   github: typeof github;
+  "sensors/codebaseAge": typeof sensors_codebaseAge;
   "sensors/dal": typeof sensors_dal;
   "sensors/ingest": typeof sensors_ingest;
   "sensors/pulse": typeof sensors_pulse;

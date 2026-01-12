@@ -9,6 +9,8 @@ import { DashboardHeader } from "../components/dashboard/DashboardHeader";
 import { TimeSinkCard } from "../components/dashboard/TimeSinkCard";
 import { TruckFactorCard } from "../components/dashboard/TruckFactorCard";
 import { PulseCard } from "../components/dashboard/PulseCard";
+import { CodebaseAgeCard } from "../components/dashboard/CodebaseAgeCard";
+import { type CodebaseAge } from "../lib/mocks/codebase-age";
 
 export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
@@ -47,6 +49,10 @@ function Dashboard() {
   const [dailyActivity, setDailyActivity] = useState<Array<{ date: string; count: number }>>([]);
   const computePulse = useConvexAction(api.sensors.pulse.compute);
 
+  /* Codebase Age State */
+  const [codebaseAge, setCodebaseAge] = useState<CodebaseAge | null>(null);
+  const computeCodebaseAge = useConvexAction(api.sensors.codebaseAge.compute);
+
   // Demo Mode
   const [isDemo, setIsDemo] = useState(false);
 
@@ -74,10 +80,11 @@ function Dashboard() {
     
     if (isDemo) {
         // Fetch Mock Data
-        import("../lib/demo-data").then(({ getMockSignals, getMockTruckFactor, getMockPulse }) => {
+        import("../lib/demo-data").then(({ getMockSignals, getMockTruckFactor, getMockPulse, getMockCodebaseAge }) => {
              const signals = getMockSignals(selectedRepo.id, timeframe);
              const tf = getMockTruckFactor(selectedRepo.id, timeframe);
              const pulse = getMockPulse(selectedRepo.id, timeframe);
+             const age = getMockCodebaseAge(selectedRepo.id);
              
              setTimeSinkScore(signals.score);
              setPrevTimeSinkScore(signals.previousScore);
@@ -91,6 +98,8 @@ function Dashboard() {
              setPrevPulseScore(pulse.previousScore);
              setPulseStatus(pulse.status);
              setDailyActivity(pulse.dailyActivity);
+
+             setCodebaseAge(age);
         });
         return;
     }
@@ -123,6 +132,13 @@ function Dashboard() {
       setPrevPulseScore(pulseResult.previousScore);
       setPulseStatus(pulseResult.status);
       setDailyActivity(pulseResult.dailyActivity);
+
+      // 4. Codebase Age
+      const ageResult = await computeCodebaseAge({
+          githubRepoId: selectedRepo.id,
+          timeframeDays: timeframe,
+      });
+      setCodebaseAge(ageResult as any);
 
     } catch (err) {
       console.error("Signal calc failed:", err);
@@ -233,6 +249,8 @@ function Dashboard() {
                 </div>
               ) : (
                 <div className="flex flex-col gap-6">
+                  <CodebaseAgeCard data={codebaseAge} />
+
                   <TimeSinkCard 
                     score={timeSinkScore}
                     prevScore={prevTimeSinkScore}
