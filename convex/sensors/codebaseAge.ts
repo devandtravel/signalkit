@@ -48,12 +48,15 @@ export const compute = action({
         const res = await fetch(`https://api.github.com/repos/${args.repoName}/contents/${path}`, {
           headers,
         });
-        if (!res.ok) return null;
+        if (!res.ok) {
+          console.log(`Fetch failed for ${path}: ${res.status}`);
+          return null;
+        }
         const data = await res.json();
         // GitHub API returns content in base64
         if (data.content && data.encoding === "base64") {
-          // Convex supports standard Web APIs
-          return atob(data.content.replace(/\n/g, ""));
+          // Use Buffer for Node.js environment
+          return Buffer.from(data.content, "base64").toString("utf-8");
         }
         return null;
       } catch (e) {
@@ -77,42 +80,45 @@ export const compute = action({
     if (pkgJsonStr) {
       try {
         const pkg = JSON.parse(pkgJsonStr);
-
-        // Check React Version
-        const reactVer =
-          pkg.dependencies?.react || pkg.devDependencies?.react || pkg.peerDependencies?.react;
-
-        if (reactVer) {
-          // Clean version string (remove ^, ~, etc)
-          const cleanVer = reactVer.replace(/[\^~>=<]/g, "");
-          const major = parseInt(cleanVer.split(".")[0], 10);
-
-          if (major >= 18) {
-            points.push({ marker: `React ${major}`, impact: "+2 years", status: "modern" });
-          } else if (major >= 17) {
-            points.push({ marker: `React ${major}`, impact: "Neutral", status: "neutral" });
-            baseYear -= 1;
-            isModern = false;
-          } else {
-            points.push({ marker: `React ${major}`, impact: "-2 years", status: "legacy" });
-            baseYear -= 3;
-            isModern = false;
-          }
-        }
-
-        // Check Module System
-        if (pkg.type === "module") {
-          points.push({ marker: "ESM Native", impact: "+1 year", status: "modern" });
+        if (typeof pkg !== "object" || pkg === null) {
+          points.push({ marker: "Invalid package.json", impact: "Unknown", status: "neutral" });
         } else {
-          // Check if using a modern bundler that mitigates CJS
-          const hasVite = pkg.devDependencies?.vite || pkg.dependencies?.vite;
-          const hasNext = pkg.dependencies?.next;
-          if (hasVite || hasNext) {
-            points.push({ marker: "Bundled (Vite/Next)", impact: "Neutral", status: "neutral" });
+          // Check React Version
+          const reactVer =
+            pkg.dependencies?.react || pkg.devDependencies?.react || pkg.peerDependencies?.react;
+
+          if (reactVer) {
+            // Clean version string (remove ^, ~, etc)
+            const cleanVer = reactVer.replace(/[\^~>=<]/g, "");
+            const major = parseInt(cleanVer.split(".")[0], 10);
+
+            if (major >= 18) {
+              points.push({ marker: `React ${major}`, impact: "+2 years", status: "modern" });
+            } else if (major >= 17) {
+              points.push({ marker: `React ${major}`, impact: "Neutral", status: "neutral" });
+              baseYear -= 1;
+              isModern = false;
+            } else {
+              points.push({ marker: `React ${major}`, impact: "-2 years", status: "legacy" });
+              baseYear -= 3;
+              isModern = false;
+            }
+          }
+
+          // Check Module System
+          if (pkg.type === "module") {
+            points.push({ marker: "ESM Native", impact: "+1 year", status: "modern" });
           } else {
-            points.push({ marker: "CommonJS detected", impact: "-2 years", status: "legacy" });
-            baseYear -= 2;
-            isModern = false;
+            // Check if using a modern bundler that mitigates CJS
+            const hasVite = pkg.devDependencies?.vite || pkg.dependencies?.vite;
+            const hasNext = pkg.dependencies?.next;
+            if (hasVite || hasNext) {
+              points.push({ marker: "Bundled (Vite/Next)", impact: "Neutral", status: "neutral" });
+            } else {
+              points.push({ marker: "CommonJS detected", impact: "-2 years", status: "legacy" });
+              baseYear -= 2;
+              isModern = false;
+            }
           }
         }
       } catch (e) {
